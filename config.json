@@ -1,0 +1,8 @@
+{
+    "model_num": 6,
+    "batch_size": 256,
+    "learning_rate": 0.004,
+    "num_epochs": 1000,
+    "num_patches": 40,
+    "num_subpatches": 400
+}
