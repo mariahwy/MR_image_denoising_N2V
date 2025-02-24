@@ -5,9 +5,7 @@ The fMRI dataset used in this project is the company's proprietary asset and can
 
 
 ## 📌 Overview
-I worked with the **Parkinson’s disease diagnosis team** at **Heuron**, a company dedicated to leveraging AI technology for neurological disorder solutions, focusing on **medical imaging and deep learning analysis**. During my research and development internship at **Heuron**, I studied basic deep learning models used in medical AI, such as **UNet** and **ResNet50** using **PyTorch**, and further applied these basic model structures to implement **Noise2Noise** and **Noise2Void** for denoising tasks on fMRI images. Additionally, I gained insights into medical imaging, particularly **fMRI** processing, and conducted research on **denoising fMRI images**.
-
-[Heuron](https://iheuron.com/en)
+I worked with the **Parkinson’s disease diagnosis team** at **[Heuron](https://iheuron.com/en)**, a company dedicated to leveraging AI technology for neurological disorder solutions, focusing on **medical imaging and deep learning analysis**. During my research and development internship at **Heuron**, I studied basic deep learning models used in medical AI, such as **UNet** and **ResNet50** using **PyTorch**, and further applied these basic model structures to implement **Noise2Noise** and **Noise2Void** for denoising tasks on fMRI images. Additionally, I gained insights into medical imaging, particularly **fMRI** processing, and conducted research on **denoising fMRI images**.
 
 ## 🔍 Key Learnings
 **Medical Imaging Process:**
