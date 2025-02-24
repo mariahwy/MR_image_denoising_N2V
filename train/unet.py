@@ -114,22 +114,7 @@ class UNet_model(nn.Module):
     
         return logits
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# This is the implementation of original UNet presented by the article. (size is shrinked) 
 
 # #!/usr/bin/env python
 # # coding: utf-8
