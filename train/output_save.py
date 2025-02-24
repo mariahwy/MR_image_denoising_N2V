@@ -61,7 +61,7 @@ def denoise_image(model, image, slice_num):
 # In[4]:
 
 
-path = "C:/Users/user/Desktop/인턴/train"
+path = "C:/Users/user/Desktop/train"
 os.makedirs("C:/Users/user/dicom/model/model_6/output", exist_ok = True)
 save_path = "C:/Users/user/dicom/model/model_6/output"
 model = UNet_model(1, 1, False)  
