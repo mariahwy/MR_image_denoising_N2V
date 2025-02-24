@@ -1,7 +1,7 @@
 # Heuron Research Internship (2024.01.03 - 2024.01.26)
 
 
-####The fMRI dataset used in this project is the company's proprietary asset and cannot be disclosed due to concerns about privacy infringement. Therefore, only the code I have written can be made public.
+The fMRI dataset used in this project is the company's proprietary asset and cannot be disclosed due to concerns about privacy infringement. Therefore, only the code I have written can be made public.
 
 
 ## 📌 Overview
