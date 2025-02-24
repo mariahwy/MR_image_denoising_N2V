@@ -27,8 +27,9 @@ from util import *
 # In[16]:
 
 
-# 훈련 hyperparameter
-TRAIN_PATH = "C:/Users/user/Desktop/인턴/train"
+TRAIN_PATH = "C:/Users/user/Desktop/train"
+VAL_PATH = "C:/Users/user/Desktop/val"
+TEST_PATH = "C:/Users/user/Desktop/dicom_test"
 
 version_num = 7
 num_epochs = 1000
@@ -49,6 +50,7 @@ config = {
     "num_subpatches": num_subpatches
 }
 
+model_dir = f"C:/Users/user/dicom/model/model_{version_num}"
 os.makedirs(f"C:/Users/user/dicom/model/model_{version_num}", exist_ok=True) # mkdir 
 config_path = f"C:/Users/user/dicom/model/model_{version_num}/config.json"
 with open(config_path, 'w') as config_file:
@@ -60,12 +62,6 @@ print(f"Config saved to {config_path}")
 transform = transforms.Compose([
     transforms.ToTensor(),
 ])
-
-
-# In[17]:
-
-
-TEST_PATH = "C:/Users/user/dicom/data/dicom_test"
 
 
 # In[18]:
@@ -94,14 +90,20 @@ model.to(device)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr = lr)
 
-log_dir = f"C:/Users/user/dicom/model/model_{version_num}/model_log" # window에서는 역슬래시
-weights_dir = f"C:/Users/user/dicom/model/model_{version_num}/weights_log"
-os.makedirs(log_dir, exist_ok=True) # mkdir
-os.makedirs(weights_dir, exist_ok=True) # mkdir
+log_dir = os.path.join(model_dir, "model_log")
+weights_dir = os.path.join(model_dir, "weights_log")
+os.makedirs(log_dir, exist_ok=True)
+os.makedirs(weights_dir, exist_ok=True)
 
 # 훈련 데이터 로딩
-train_dataset = NiftiDataset(TEST_PATH, transform = transform)
+train_dataset = NiftiDataset(TRAIN_PATH, transform = transform)
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
+val_dataset = NiftiDataset(TEST_PATH, transform = transform)
+val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+
+test_dataset = NiftiDataset(TEST_PATH, transform = transform)
+test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
 best_train_loss = float('inf')
 
@@ -112,26 +114,19 @@ with open(os.path.join(log_dir, "train_log.csv"), "w") as log:
         current_train_loss = 0
 
         for step, image in enumerate(train_dataloader):
-            image = image.type(torch.float32)
-            image = image.to(device)
-            
+            image = image.type(torch.float32).to(device)
             patch_loss = 0
 
-            for i in range(num_patches):
+            for _ in range(num_patches):
                 patch = generate_patch(image, patch_size)
                 random_patch = deepcopy(patch) #추가
                 inputs, coordinate = calculate_coordinate(random_patch, field_size, num_subpatches)       
 
                 optimizer.zero_grad()
-
-                # 모델에 입력 전달 및 출력 얻기        
+    
                 outputs = model(inputs)
                 outputs, targets = add_maskmap(outputs, coordinate)
-                # print(outputs.shape, targets.shape)
-                # print(torch.min(outputs), torch.max(outputs))
-                # print(torch.min(targets), torch.max(targets))
-                # print('='*50)
-                # 손실 계산 및 역전파
+                
                 loss = criterion(outputs, targets)       
                 loss.backward()
                 optimizer.step()
@@ -139,21 +134,60 @@ with open(os.path.join(log_dir, "train_log.csv"), "w") as log:
                 patch_loss += loss.item()
             
             patch_loss /= num_patches
+        train_loss /= len(train_dataloader)
 
-            current_train_loss += patch_loss
-        
-        current_train_loss /= len(train_dataloader)
+        # validation step
+        model.eval()
+        val_loss = 0
+        with torch.no_grad():
+            for step, image in enumerate(val_dataloader):
+                image = image.type(torch.float32).to(device)
+                patch_loss = 0
 
-        print(f"Iter: [{epoch}/{num_epochs}] | Train Loss: {current_train_loss}\n")
+                for _ in range(num_patches):
+                    patch = generate_patch(image, patch_size)
+                    random_patch = deepcopy(patch)
+                    inputs, coordinate = calculate_coordinate(random_patch, field_size, num_subpatches)
+                    outputs = model(inputs)
+                    outputs, targets = add_maskmap(outputs, coordinate)
+                    loss = criterion(outputs, targets)
+                    patch_loss += loss.item()
+                
+                val_loss += patch_loss / num_patches
+            val_loss /= len(val_dataloader)
             
-        if current_train_loss < best_train_loss:
-            best_train_loss = current_train_loss
-            torch.save(model.state_dict(), f'C:/Users/user/dicom/model/model_{version_num}/weights_log/model_{epoch:04d}.pth')
-            log.write(f"{epoch},{current_train_loss}\n")
-        else:
-            pass
+        print(f"Epoch: [{epoch}/{num_epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+        log.write(f"{epoch},{train_loss},{val_loss}\n")
+        
+        # Save best model based on validation loss
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), os.path.join(weights_dir, f"best_model.pth"))
 
-final_model_save_path = f"C:/Users/user/dicom/model/model_{version_num}/weights_log/final_model.pth"
+# Test Step
+model.load_state_dict(torch.load(os.path.join(weights_dir, "best_model.pth")))
+model.eval()
+test_loss = 0
+with torch.no_grad():
+    for step, image in enumerate(test_dataloader):
+        image = image.type(torch.float32).to(device)
+        patch_loss = 0
+
+        for _ in range(num_patches):
+            patch = generate_patch(image, patch_size)
+            random_patch = deepcopy(patch)
+            inputs, coordinate = calculate_coordinate(random_patch, field_size, num_subpatches)
+            outputs = model(inputs)
+            outputs, targets = add_maskmap(outputs, coordinate)
+            loss = criterion(outputs, targets)
+            patch_loss += loss.item()
+        
+        test_loss += patch_loss / num_patches
+    test_loss /= len(test_dataloader)
+print(f"Final Test Loss: {test_loss:.4f}")
+
+final_model_save_path = os.path.join(weights_dir, "final_model.pth")
 torch.save(model.state_dict(), final_model_save_path)
 print(f"Final model saved at {final_model_save_path}")
+
 
