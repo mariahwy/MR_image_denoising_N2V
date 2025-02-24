@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
 import os
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -21,33 +18,17 @@ import torch.optim as optim
 from layer import *
 from unet import *
 
-
-# ## 이미지 로딩
-
-# In[2]:
-
+# load image
 
 image_path = "C:/Users/user/Desktop/인턴/I001.nii.gz"
 nifty = nib.load(image_path)
 nifty_image = nifty.get_fdata()
 
-
-# In[5]:
-
-
 nifty_image.shape[2]
-
-
-# In[3]:
-
 
 slice = []
 for i in range(nifty_image.shape[2]):
     slice.append(nifty_image[:, :, i])
-
-
-# In[32]:
-
 
 plt.figure(figsize=(12, 12))
 for i in range(len(slice)):
@@ -55,10 +36,7 @@ for i in range(len(slice)):
     plt.imshow(slice[i].T, cmap = "gray", origin = "lower")
 
 
-# ## 랜덤한 N개 패치 생성
-
-# In[44]:
-
+# generate n random patch
 
 def generate_patch(image, patch_size):
     
@@ -75,14 +53,8 @@ def generate_patch(image, patch_size):
     return [random_patch, top_left_x, top_left_y]
 
 
-# In[48]:
-
-
 patch = generate_patch(slice[0], 64)
 random_patch, top_left_x, top_left_y = patch[0], patch[1], patch[2]
-
-
-# In[48]:
 
 
 random_patch = generate_patch(slice[0], 64)
@@ -94,9 +66,6 @@ plt.subplot(1, 2, 2)
 plt.imshow(random_patch.T, cmap = "gray", origin = "lower")
 
 
-# In[5]:
-
-
 patch_list = []
 
 plt.figure(figsize = (6, 6))
@@ -106,22 +75,14 @@ for i in range(9):
     plt.subplot(3, 3, i + 1)
     plt.imshow(patch.T, cmap = "gray", origin = "lower")
 
-
-# In[18]:
-
-
 patch_list[0].shape
 
+# select n pixels from patch randomly
 
-# ## 패치 내에서 랜덤하게 N개의 pixel 선택
+# mask selected pixels and replace
 
-# ## target: 랜덤하게 선택된 N개의 pixel masking & 대체하기
-
-# In[58]:
-
-
-def generate_subpatch(patch_list, field_size, num_subpatches): # 패치 내에서 랜덤하게 receptive field 생성
-    # 64x64 크기의 패치에서 5x5 크기의 receptive field 추출
+def generate_subpatch(patch_list, field_size, num_subpatches): # generate receptive field randomly
+    # 5x5 size receptive field generate from 64x64 size patch
     patch = patch_list[0]
     coordinate = []
     replace_value = []
@@ -129,12 +90,12 @@ def generate_subpatch(patch_list, field_size, num_subpatches): # 패치 내에�
         subpatch = generate_patch(patch, field_size)
         random_subpatch, top_row, top_col = subpatch[0], subpatch[1], subpatch[2]
 
-        # center pixel 좌표
+        # center pixel
         center_row = top_row + (field_size // 2)
         center_col = top_col + (field_size // 2)
         pixel_value = patch[center_row, center_col]
 
-        # receptive field 내의 랜덤한 pixel 추출
+        # random pixels from receptive field
         replace_indices = np.random.choice(5 * 5, replace=False)
 
         subpatch_flat = random_subpatch.flatten()
@@ -146,10 +107,6 @@ def generate_subpatch(patch_list, field_size, num_subpatches): # 패치 내에�
         patch[row, col] = replace
         
     return patch, coordinate
-
-
-# In[60]:
-
 
 replaced_patch, coordinate = generate_subpatch(patch, 5, 100)
 
