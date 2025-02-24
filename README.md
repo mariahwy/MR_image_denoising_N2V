@@ -1,5 +1,9 @@
 # Heuron Research Internship (2024.01.03 - 2024.01.26)
 
+---
+The fMRI dataset used in this project is the company's proprietary asset and cannot be disclosed due to concerns about privacy infringement. Therefore, only the code I have written can be made public.
+---
+
 ## 📌 Overview
 I worked with the **Parkinson’s disease diagnosis team** at **Heuron**, a company dedicated to leveraging AI technology for neurological disorder solutions, focusing on **medical imaging and deep learning analysis**. During my research and development internship at **Heuron**, I studied basic deep learning models used in medical AI, such as **UNet** and **ResNet50** using **PyTorch**, and further applied these basic model structures to implement **Noise2Noise** and **Noise2Void** for denoising tasks on fMRI images. Additionally, I gained insights into medical imaging, particularly **fMRI** processing, and conducted research on **denoising fMRI images**.
 
